@@ -31,9 +31,16 @@ x_bp = []
 sim_time_test = sim_time
 x_len_test = sim_time_test/dt
 for nn in range(n):
-    if nn < ne: p_rate = b_rate*(1+m_exc*np.cos(2*(th - po_init[nn])))
-    else: p_rate = b_rate*(1+m_inh*np.cos(2*(th - po_init[nn])))
-    rate_ev = np.random.poisson(p_rate*dt/1000., x_len_test).tolist()
+    if nn < ne:
+        p_rate = b_rate*(1+m_exc*np.cos(2*(th - po_init[nn])))
+    else:
+        p_rate = b_rate*(1+m_inh*np.cos(2*(th - po_init[nn])))
+    try:
+        rate_ev = np.random.poisson(lam=int(p_rate * dt / 1000), size=int(x_len_test)).tolist()
+    except TypeError as e:
+        print(f"TypeError: {e}")
+        print(f"p_rate * dt / 1000 evaluated to {p_rate * dt / 1000} which is cast to {int(p_rate * dt / 1000)}")
+        print(f"Size parameter x_len_test is {x_len_test}, should be integer but was cast to {int(x_len_test)}")
     x_bp.append(rate_ev)
 x_bp = np.array(x_bp)
 
@@ -57,7 +64,7 @@ W_blk_tot = []
 stim_rng_tot = []
 for blk in range(block_no):
     print(blk)
-    stim_rng = np.random.uniform(0, np.pi, stim_no)
+    stim_rng = np.random.uniform(0, np.pi, int(stim_no))
     stim_rng_tot.append(stim_rng)
     t_stim = sim_time / len(stim_rng)
     x_wp = []
@@ -66,7 +73,10 @@ for blk in range(block_no):
         for st in stim_rng:
             if nn < ne: p_rate = b_rate*(1+m_exc*np.cos(2*(st - po_init[nn])))
             else: p_rate = b_rate*(1+m_inh*np.cos(2*(st - po_init[nn])))
-            rates = rates + np.random.poisson(p_rate*dt/1000., x_len/len(stim_rng)).tolist()
+            try:
+                rate_ev = np.random.poisson(lam=int(p_rate * dt / 1000), size=int(x_len / len(stim_rng))).tolist()
+            except TypeError as e:
+                print(f"TypeError: {e}")
         rates = np.array(rates)
         x_wp.append(rates)
     x_wp = np.array(x_wp)
